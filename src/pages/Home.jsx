@@ -18,8 +18,8 @@ export default function Home() {
       {/* 헤더 */}
       <div style={styles.header}>
         <div style={styles.headerIcon}>🏥</div>
-        <h1 style={styles.title}>두뇌 건강 게임</h1>
-        <p style={styles.subtitle}>매일 조금씩, 뇌를 건강하게!</p>
+        <h1 style={styles.title}>Returns</h1>
+        <p style={styles.subtitle}>매일 5분, 뇌를 깨우는 습관</p>
       </div>
 
       {/* 게임 목록 */}

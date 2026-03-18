@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { DIFFICULTY_CONFIG } from '../hooks/useMemoryGame';
 
 const STEPS = [
-  { icon: '👆', text: '카드를 하나 눌러서 뒤집어요' },
-  { icon: '🔍', text: '또 다른 카드를 눌러 짝을 찾아요' },
-  { icon: '✅', text: '같은 그림이면 짝 완성!' },
-  { icon: '🏆', text: '시간 안에 모든 짝을 찾으면 게임 끝!' },
+  { text: '카드를 하나 눌러서 뒤집어요' },
+  { text: '또 다른 카드를 눌러 짝을 찾아요' },
+  { text: '같은 그림이면 짝 완성!' },
+  { text: '시간 안에 모든 짝을 찾으면 게임 끝!' },
 ];
 
 export default function GuideScreen({ onStart }) {
@@ -34,7 +34,6 @@ export default function GuideScreen({ onStart }) {
               <div key={i} style={styles.step}>
                 <span style={styles.stepNumber}>{i + 1}</span>
                 <span style={styles.stepText}>{step.text}</span>
-                <span style={styles.stepIcon}>{step.icon}</span>
               </div>
             ))}
           </div>
