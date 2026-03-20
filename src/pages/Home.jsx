@@ -1,12 +1,61 @@
 import { useNavigate } from 'react-router-dom';
 
-const GAMES = [
+const CATEGORIES = [
   {
-    id: 'memory-card',
-    title: '기억력 카드 게임',
-    description: '짝이 맞는 카드를 찾아보세요',
-    emoji: '🧠',
-    path: '/memory-card',
+    id: 'memory',
+    label: '기억력',
+    icon: '🧠',
+    games: [
+      {
+        id: 'memory-card',
+        title: '카드 뒤집기 게임',
+        emoji: '🃏',
+        path: '/memory-card',
+        active: true,
+      },
+    ],
+  },
+  {
+    id: 'attention',
+    label: '주의 집중력',
+    icon: '👁️',
+    games: [
+      {
+        id: 'color-word',
+        title: '색깔 단어 게임',
+        emoji: '🎨',
+        path: '/stroop',
+        active: true,
+      },
+    ],
+  },
+  {
+    id: 'language',
+    label: '언어 능력',
+    icon: '💬',
+    games: [
+      {
+        id: 'initial-consonant',
+        title: '초성 게임',
+        emoji: '✏️',
+        path: '/chosung',
+        active: true,
+      },
+    ],
+  },
+  {
+    id: 'spatial',
+    label: '시공간 능력',
+    icon: '🎲',
+    games: [
+      {
+        id: 'puzzle',
+        title: '퍼즐 조각 맞추기',
+        emoji: '🧩',
+        path: '/puzzle',
+        active: true,
+      },
+    ],
   },
 ];
 
@@ -22,27 +71,55 @@ export default function Home() {
         <p style={styles.subtitle}>매일 5분, 뇌를 깨우는 습관</p>
       </div>
 
-      {/* 게임 목록 */}
-      <div style={styles.section}>
-        <p style={styles.sectionLabel}>게임 선택</p>
-        <div style={styles.gameList}>
-          {GAMES.map((game) => (
-            <button
-              key={game.id}
-              style={styles.gameCard}
-              onClick={() => navigate(game.path)}
-            >
-              <div style={styles.gameIconWrap}>
-                <span style={styles.gameEmoji}>{game.emoji}</span>
-              </div>
-              <div style={styles.gameInfo}>
-                <div style={styles.gameTitle}>{game.title}</div>
-                <div style={styles.gameDesc}>{game.description}</div>
-              </div>
-              <span style={styles.arrow}>›</span>
-            </button>
-          ))}
-        </div>
+      {/* 카테고리 목록 */}
+      <div style={styles.content}>
+        {CATEGORIES.map((cat) => (
+          <div key={cat.id} style={styles.section}>
+            {/* 카테고리 헤더 */}
+            <div style={styles.categoryHeader}>
+              <span style={styles.categoryIcon}>{cat.icon}</span>
+              <span style={styles.categoryLabel}>{cat.label}</span>
+              <span style={styles.gameCount}>게임 {cat.games.length}개</span>
+            </div>
+
+            {/* 게임 목록 */}
+            <div style={styles.gameList}>
+              {cat.games.map((game) => (
+                <button
+                  key={game.id}
+                  style={{
+                    ...styles.gameCard,
+                    ...(game.active ? {} : styles.gameCardDisabled),
+                  }}
+                  onClick={() => game.active && navigate(game.path)}
+                  disabled={!game.active}
+                >
+                  <div style={{
+                    ...styles.gameIconWrap,
+                    ...(game.active ? {} : styles.gameIconWrapDisabled),
+                  }}>
+                    <span style={styles.gameEmoji}>{game.emoji}</span>
+                  </div>
+                  <div style={styles.gameInfo}>
+                    <div style={{
+                      ...styles.gameTitle,
+                      ...(game.active ? {} : styles.gameTitleDisabled),
+                    }}>
+                      {game.title}
+                    </div>
+                    {!game.active && (
+                      <div style={styles.comingSoon}>준비 중</div>
+                    )}
+                  </div>
+                  {game.active
+                    ? <span style={styles.arrow}>›</span>
+                    : <span style={styles.lock}>🔒</span>
+                  }
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 하단 배너 */}
@@ -89,23 +166,46 @@ const styles = {
     color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
   },
-  section: {
+  content: {
     width: '100%',
     maxWidth: '520px',
     padding: '0 20px',
-    marginBottom: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
   },
-  sectionLabel: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#6876A0',
-    marginBottom: '12px',
+  section: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  categoryHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
     paddingLeft: '4px',
+  },
+  categoryIcon: {
+    fontSize: '22px',
+  },
+  categoryLabel: {
+    fontSize: '20px',
+    fontWeight: '700',
+    color: '#12153D',
+    flex: 1,
+  },
+  gameCount: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#6876A0',
+    background: '#E8ECFC',
+    padding: '4px 10px',
+    borderRadius: '20px',
   },
   gameList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '14px',
+    gap: '10px',
   },
   gameCard: {
     display: 'flex',
@@ -117,6 +217,13 @@ const styles = {
     boxShadow: '0 4px 16px rgba(31,62,224,0.10)',
     border: '2px solid transparent',
     textAlign: 'left',
+    cursor: 'pointer',
+  },
+  gameCardDisabled: {
+    background: '#F0F2FA',
+    boxShadow: 'none',
+    border: '2px solid #E0E5F0',
+    cursor: 'default',
   },
   gameIconWrap: {
     width: '64px',
@@ -128,6 +235,9 @@ const styles = {
     justifyContent: 'center',
     flexShrink: 0,
   },
+  gameIconWrapDisabled: {
+    background: '#E4E8F5',
+  },
   gameEmoji: {
     fontSize: '36px',
   },
@@ -138,11 +248,15 @@ const styles = {
     fontSize: '22px',
     fontWeight: '700',
     color: '#12153D',
-    marginBottom: '4px',
   },
-  gameDesc: {
-    fontSize: '18px',
-    color: '#6876A0',
+  gameTitleDisabled: {
+    color: '#A0A8C0',
+  },
+  comingSoon: {
+    fontSize: '16px',
+    color: '#A0A8C0',
+    marginTop: '4px',
+    fontWeight: '600',
   },
   arrow: {
     fontSize: '32px',
@@ -150,20 +264,15 @@ const styles = {
     fontWeight: '700',
     flexShrink: 0,
   },
+  lock: {
+    fontSize: '24px',
+    flexShrink: 0,
+  },
   banner: {
     width: '100%',
     maxWidth: '520px',
     padding: '0 20px',
     marginTop: '8px',
-  },
-  bannerInner: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    background: '#FFF4E5',
-    border: '2px solid #FFD599',
-    borderRadius: '14px',
-    padding: '16px 20px',
   },
   bannerIcon: {
     fontSize: '24px',

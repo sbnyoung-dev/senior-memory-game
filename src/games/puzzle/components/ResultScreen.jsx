@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 
 function getGrade(total) {
-  if (total >= 90) return { emoji: '🧠', grade: '기억력 박사', message: '기억력이 매우 뛰어나요!' };
-  if (total >= 75) return { emoji: '⭐', grade: '기억력 우수', message: '기억력이 좋으세요!' };
-  if (total >= 60) return { emoji: '👍', grade: '기억력 양호', message: '꾸준히 하면 더 좋아져요!' };
-  if (total >= 45) return { emoji: '💪', grade: '기억력 훈련중', message: '매일 조금씩 연습해봐요!' };
-  return { emoji: '🌱', grade: '기억력 새싹', message: '잘 하셨어요!' };
+  if (total >= 90) return { emoji: '🧠', grade: '시공간능력 박사',   message: '공간 지각력이 매우 뛰어나요!' };
+  if (total >= 75) return { emoji: '⭐', grade: '시공간능력 우수',   message: '공간 지각력이 좋으세요!' };
+  if (total >= 60) return { emoji: '👍', grade: '시공간능력 양호',   message: '꾸준히 하면 더 좋아져요!' };
+  if (total >= 45) return { emoji: '💪', grade: '시공간능력 훈련중', message: '매일 조금씩 연습해봐요!' };
+  return             { emoji: '🌱', grade: '시공간능력 새싹',   message: '잘 하셨어요!' };
 }
 
 function ScoreBar({ label, score, max, color }) {
@@ -25,14 +25,14 @@ function ScoreBar({ label, score, max, color }) {
 
 export default function ResultScreen({ result, onRestart }) {
   const navigate = useNavigate();
-  const { total, accuracy, speed, efficiency } = result;
+  const { total, accuracy, speed, efficiency, roundsCompleted, totalRounds } = result;
   const { emoji, grade, message } = getGrade(total);
 
   return (
     <div style={styles.container}>
       {/* 점수 헤더 */}
       <div style={styles.scoreHeader}>
-        <p style={styles.scoreLabel}>오늘의 기억력 점수</p>
+        <p style={styles.scoreLabel}>오늘의 시공간능력 점수</p>
         <div style={styles.scoreRow}>
           <span style={styles.scoreNumber}>{total}</span>
           <span style={styles.scoreMax}>/ 100점</span>
@@ -47,9 +47,27 @@ export default function ResultScreen({ result, onRestart }) {
       </div>
 
       <div style={styles.content}>
+        {/* 요약 */}
+        <div style={styles.summaryRow}>
+          <div style={styles.summaryBox}>
+            <span style={styles.summaryValue}>{roundsCompleted}/{totalRounds}</span>
+            <span style={styles.summaryLabel}>완성 라운드</span>
+          </div>
+          <div style={styles.summaryDivider} />
+          <div style={styles.summaryBox}>
+            <span style={styles.summaryValue}>{accuracy}</span>
+            <span style={styles.summaryLabel}>평균 정확도</span>
+          </div>
+          <div style={styles.summaryDivider} />
+          <div style={styles.summaryBox}>
+            <span style={styles.summaryValue}>{speed}</span>
+            <span style={styles.summaryLabel}>평균 속도</span>
+          </div>
+        </div>
+
         {/* 세부 점수 */}
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>세부 점수</h2>
+          <h2 style={styles.cardTitle}>세부 점수 (라운드 평균)</h2>
           <ScoreBar label="정확도" score={accuracy}   max={60} color="#1F3EE0" />
           <ScoreBar label="속도"   score={speed}      max={25} color="#FF8C00" />
           <ScoreBar label="효율성" score={efficiency} max={15} color="#00A86B" />
@@ -58,10 +76,9 @@ export default function ResultScreen({ result, onRestart }) {
         {/* 응원 메시지 */}
         <div style={styles.encouragement}>
           <span style={styles.encourageIcon}>💡</span>
-          <span style={styles.encourageText}>꾸준한 훈련이 뇌 건강의 비결이에요</span>
+          <span style={styles.encourageText}>공간 지각력 훈련이 뇌를 더욱 젊게 만들어요</span>
         </div>
 
-        {/* 버튼 */}
         <button style={styles.restartBtn} onClick={onRestart}>
           다시 하기
         </button>
@@ -123,9 +140,7 @@ const styles = {
     borderRadius: '16px',
     padding: '14px 24px',
   },
-  gradeEmoji: {
-    fontSize: '40px',
-  },
+  gradeEmoji: { fontSize: '40px' },
   gradeName: {
     fontSize: '22px',
     fontWeight: '800',
@@ -144,6 +159,37 @@ const styles = {
     flexDirection: 'column',
     gap: '16px',
   },
+  summaryRow: {
+    display: 'flex',
+    background: '#FFFFFF',
+    borderRadius: '20px',
+    boxShadow: '0 4px 16px rgba(31,62,224,0.08)',
+    overflow: 'hidden',
+  },
+  summaryBox: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '20px 8px',
+    gap: '4px',
+  },
+  summaryValue: {
+    fontSize: '30px',
+    fontWeight: '900',
+    color: '#12153D',
+  },
+  summaryLabel: {
+    fontSize: '16px',
+    color: '#6876A0',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  summaryDivider: {
+    width: '2px',
+    background: '#F0F2F8',
+    margin: '16px 0',
+  },
   card: {
     background: '#FFFFFF',
     borderRadius: '20px',
@@ -156,23 +202,14 @@ const styles = {
     color: '#12153D',
     marginBottom: '20px',
   },
-  barRow: {
-    marginBottom: '18px',
-  },
+  barRow: { marginBottom: '18px' },
   barLabelRow: {
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '8px',
   },
-  barLabel: {
-    fontSize: '20px',
-    color: '#12153D',
-    fontWeight: '700',
-  },
-  barScore: {
-    fontSize: '20px',
-    fontWeight: '700',
-  },
+  barLabel: { fontSize: '20px', color: '#12153D', fontWeight: '700' },
+  barScore: { fontSize: '20px', fontWeight: '700' },
   barBg: {
     background: '#F0F2F8',
     borderRadius: '8px',
@@ -193,10 +230,7 @@ const styles = {
     borderRadius: '14px',
     padding: '18px 20px',
   },
-  encourageIcon: {
-    fontSize: '26px',
-    flexShrink: 0,
-  },
+  encourageIcon: { fontSize: '26px', flexShrink: 0 },
   encourageText: {
     fontSize: '18px',
     color: '#7A4800',
@@ -210,6 +244,8 @@ const styles = {
     fontSize: '22px',
     fontWeight: '800',
     borderRadius: '16px',
+    border: 'none',
+    cursor: 'pointer',
     boxShadow: '0 6px 20px rgba(31,62,224,0.35)',
   },
   homeBtn: {
@@ -221,6 +257,7 @@ const styles = {
     fontWeight: '700',
     borderRadius: '16px',
     border: '2px solid #E0E5F0',
+    cursor: 'pointer',
     boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
   },
 };

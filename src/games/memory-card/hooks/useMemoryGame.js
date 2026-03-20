@@ -3,9 +3,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 const ALL_SYMBOLS = ['⭐', '❤️', '🔵', '🟡', '🟢', '🟠', '💜', '🌙'];
 
 export const DIFFICULTY_CONFIG = {
-  easy:   { pairs: 4,  time: 30,  cols: 4, label: '쉬움',   cards: '8장',  timeLabel: '30초' },
-  normal: { pairs: 6,  time: 60,  cols: 4, label: '보통',   cards: '12장', timeLabel: '1분' },
-  hard:   { pairs: 8,  time: 120, cols: 4, label: '어려움', cards: '16장', timeLabel: '2분' },
+  easy:   { pairs: 4,  time: 30,  cols: 4, label: '초급', cards: '8장',  timeLabel: '30초' },
+  normal: { pairs: 6,  time: 60,  cols: 4, label: '중급', cards: '12장', timeLabel: '1분' },
+  hard:   { pairs: 8,  time: 120, cols: 4, label: '고급', cards: '16장', timeLabel: '2분' },
 };
 
 function shuffle(arr) {
@@ -111,10 +111,10 @@ export function useMemoryGame(difficulty) {
   );
 
   const calculateScore = useCallback(() => {
-    const accuracyScore = Math.round((matchedPairs / config.pairs) * 40);
-    const speedScore = Math.round((timeLeft / config.time) * 30);
+    const accuracyScore = Math.round((matchedPairs / config.pairs) * 60);
+    const speedScore = Math.max(8, Math.round((timeLeft / config.time) * 25));
     const wrongAttempts = Math.max(0, attempts - matchedPairs);
-    const efficiencyScore = Math.max(0, 30 - wrongAttempts * 2);
+    const efficiencyScore = Math.max(5, 15 - wrongAttempts * 2);
     return {
       total: Math.min(100, accuracyScore + speedScore + efficiencyScore),
       accuracy: accuracyScore,
