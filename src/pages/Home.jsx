@@ -1,131 +1,114 @@
 import { useNavigate } from 'react-router-dom';
+import { STORAGE_KEY } from './AdmissionPage';
 
-const CATEGORIES = [
-  {
-    id: 'memory',
-    label: '기억력',
-    icon: '🧠',
-    games: [
-      {
-        id: 'memory-card',
-        title: '카드 뒤집기 게임',
-        emoji: '🃏',
-        path: '/memory-card',
-        active: true,
-      },
-    ],
-  },
-  {
-    id: 'attention',
-    label: '주의 집중력',
-    icon: '👁️',
-    games: [
-      {
-        id: 'color-word',
-        title: '색깔 단어 게임',
-        emoji: '🎨',
-        path: '/stroop',
-        active: true,
-      },
-    ],
-  },
-  {
-    id: 'language',
-    label: '언어 능력',
-    icon: '💬',
-    games: [
-      {
-        id: 'initial-consonant',
-        title: '초성 게임',
-        emoji: '✏️',
-        path: '/chosung',
-        active: true,
-      },
-    ],
-  },
-  {
-    id: 'spatial',
-    label: '시공간 능력',
-    icon: '🎲',
-    games: [
-      {
-        id: 'puzzle',
-        title: '퍼즐 조각 맞추기',
-        emoji: '🧩',
-        path: '/puzzle',
-        active: true,
-      },
-    ],
-  },
+const GAMES = [
+  { period: 1, category: 'memory',      icon: '🧠', label: '기억력',         title: '카드 뒤집기',      path: '/memory-card' },
+  { period: 2, category: 'attention',   icon: '👁️', label: '주의집중력',      title: '색깔 단어 게임',   path: '/stroop'      },
+  { period: 3, category: 'language',    icon: '💬', label: '언어능력',        title: '초성 게임',        path: '/chosung'     },
+  { period: 4, category: 'spatial',     icon: '🗺️', label: '시공간능력',      title: '퍼즐 조각 맞추기', path: '/puzzle'      },
+  { period: 5, category: 'executive',   icon: '🎯', label: '전두엽 집행능력', title: '신호등 게임',      path: '/traffic'     },
+  { period: 6, category: 'calculation', icon: '🔢', label: '계산능력',        title: '분식집 키오스크',  path: '/bunsik'      },
 ];
+
+const GRADE_LABEL = { 1: '1학년 · 초급', 2: '2학년 · 중급', 3: '3학년 · 고급' };
+
+function getToday() {
+  return new Date().toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  });
+}
 
 export default function Home() {
   const navigate = useNavigate();
+  const user       = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const scores     = user.todayScores || {};
+  const difficulty = user.difficulty || 'easy';
+  const grade      = user.grade || 1;
+
+  const completedCount = Object.values(scores).filter(s => s > 0).length;
+  const allDone        = completedCount === 6;
+
+  function handlePlay(game) {
+    navigate(`${game.path}?difficulty=${difficulty}`);
+  }
 
   return (
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <div style={styles.headerIcon}>🏥</div>
-        <h1 style={styles.title}>Returns</h1>
-        <p style={styles.subtitle}>매일 5분, 뇌를 깨우는 습관</p>
-      </div>
-
-      {/* 카테고리 목록 */}
-      <div style={styles.content}>
-        {CATEGORIES.map((cat) => (
-          <div key={cat.id} style={styles.section}>
-            {/* 카테고리 헤더 */}
-            <div style={styles.categoryHeader}>
-              <span style={styles.categoryIcon}>{cat.icon}</span>
-              <span style={styles.categoryLabel}>{cat.label}</span>
-              <span style={styles.gameCount}>게임 {cat.games.length}개</span>
-            </div>
-
-            {/* 게임 목록 */}
-            <div style={styles.gameList}>
-              {cat.games.map((game) => (
-                <button
-                  key={game.id}
-                  style={{
-                    ...styles.gameCard,
-                    ...(game.active ? {} : styles.gameCardDisabled),
-                  }}
-                  onClick={() => game.active && navigate(game.path)}
-                  disabled={!game.active}
-                >
-                  <div style={{
-                    ...styles.gameIconWrap,
-                    ...(game.active ? {} : styles.gameIconWrapDisabled),
-                  }}>
-                    <span style={styles.gameEmoji}>{game.emoji}</span>
-                  </div>
-                  <div style={styles.gameInfo}>
-                    <div style={{
-                      ...styles.gameTitle,
-                      ...(game.active ? {} : styles.gameTitleDisabled),
-                    }}>
-                      {game.title}
-                    </div>
-                    {!game.active && (
-                      <div style={styles.comingSoon}>준비 중</div>
-                    )}
-                  </div>
-                  {game.active
-                    ? <span style={styles.arrow}>›</span>
-                    : <span style={styles.lock}>🔒</span>
-                  }
-                </button>
-              ))}
-            </div>
+        <div style={styles.headerTop}>
+          <span style={styles.logo}>🎓</span>
+          <span style={styles.logoText}>두뇌대학교</span>
+        </div>
+        <h1 style={styles.title}>{user.name || ''}님의 오늘 훈련 시간표</h1>
+        <div style={styles.headerMeta}>
+          <span style={styles.dateText}>{getToday()}</span>
+          <span style={styles.gradeBadge}>{GRADE_LABEL[grade]}</span>
+        </div>
+        {/* 진행 바 */}
+        <div style={styles.progressWrap}>
+          <div style={styles.progressBg}>
+            <div style={{ ...styles.progressFill, width: `${(completedCount / 6) * 100}%` }} />
           </div>
-        ))}
+          <span style={styles.progressText}>{completedCount} / 6 완료</span>
+        </div>
       </div>
 
-      {/* 하단 배너 */}
-      <div style={styles.banner}>
-        <span style={styles.bannerIcon}>💡</span>
-        <span style={styles.bannerText}>꾸준한 두뇌 훈련이 건강의 비결이에요</span>
+      {/* 시간표 */}
+      <div style={styles.content}>
+        <div style={styles.timetable}>
+          {GAMES.map(game => {
+            const done = (scores[game.category] || 0) > 0;
+            return (
+              <div key={game.category} style={{ ...styles.row, ...(done ? styles.rowDone : {}) }}>
+                {/* 교시 */}
+                <div style={styles.periodCol}>
+                  <span style={styles.periodNum}>{game.period}</span>
+                  <span style={styles.periodUnit}>교시</span>
+                </div>
+
+                {/* 구분선 */}
+                <div style={styles.divider} />
+
+                {/* 과목 정보 */}
+                <div style={styles.gameInfo}>
+                  <div style={styles.gameCategory}>
+                    <span style={styles.gameIcon}>{game.icon}</span>
+                    <span style={styles.gameCategoryLabel}>{game.label}</span>
+                  </div>
+                  <span style={styles.gameTitle}>{game.title}</span>
+                </div>
+
+                {/* 플레이 / 완료 버튼 */}
+                {done ? (
+                  <div style={styles.doneTag}>✅ 완료</div>
+                ) : (
+                  <button style={styles.playBtn} onClick={() => handlePlay(game)}>
+                    ▶ 플레이
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 모두 완료 버튼 */}
+        {allDone && (
+          <button style={styles.reportBtn} onClick={() => navigate('/daily-report')}>
+            🎉 오늘 훈련 완료! 데일리 리포트 보기
+          </button>
+        )}
+
+        {/* 하단 안내 */}
+        <p style={styles.notice}>순서대로 하지 않아도 괜찮아요 😊</p>
+
+        {/* 처음으로 돌아가기 */}
+        <button
+          style={styles.resetBtn}
+          onClick={() => { localStorage.removeItem(STORAGE_KEY); navigate('/admission'); }}
+        >
+          처음으로 돌아가기
+        </button>
       </div>
     </div>
   );
@@ -138,7 +121,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '0 0 48px',
   },
   header: {
     width: '100%',
@@ -146,141 +128,170 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '52px 24px 44px',
+    padding: '28px 24px 32px',
     borderRadius: '0 0 32px 32px',
-    marginBottom: '32px',
+    marginBottom: '20px',
   },
-  headerIcon: {
-    fontSize: '56px',
-    marginBottom: '16px',
-  },
-  title: {
-    fontSize: '34px',
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: '8px',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: '18px',
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
-  content: {
-    width: '100%',
-    maxWidth: '520px',
-    padding: '0 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  categoryHeader: {
+  headerTop: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    paddingLeft: '4px',
+    marginBottom: '16px',
   },
-  categoryIcon: {
-    fontSize: '22px',
+  logo:     { fontSize: '28px' },
+  logoText: { fontSize: '20px', fontWeight: '800', color: 'rgba(255,255,255,0.85)' },
+  title: {
+    fontSize: '24px',
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: '12px',
+    textAlign: 'center',
   },
-  categoryLabel: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#12153D',
-    flex: 1,
+  headerMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
-  gameCount: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#6876A0',
-    background: '#E8ECFC',
-    padding: '4px 10px',
+  dateText: { fontSize: '17px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' },
+  gradeBadge: {
+    fontSize: '17px',
+    fontWeight: '800',
+    color: '#1F3EE0',
+    background: '#FFFFFF',
+    padding: '4px 14px',
     borderRadius: '20px',
   },
-  gameList: {
+  progressWrap: {
+    width: '100%',
+    maxWidth: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  progressBg: {
+    width: '100%',
+    height: '10px',
+    background: 'rgba(255,255,255,0.25)',
+    borderRadius: '6px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    background: '#FFFFFF',
+    borderRadius: '6px',
+    transition: 'width 0.5s ease',
+  },
+  progressText: { fontSize: '16px', color: 'rgba(255,255,255,0.85)', fontWeight: '700' },
+
+  content: {
+    width: '100%',
+    maxWidth: '520px',
+    padding: '0 16px 48px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  timetable: {
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
   },
-  gameCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '20px',
+  row: {
     background: '#FFFFFF',
-    borderRadius: '20px',
-    boxShadow: '0 4px 16px rgba(31,62,224,0.10)',
-    border: '2px solid transparent',
-    textAlign: 'left',
-    cursor: 'pointer',
-  },
-  gameCardDisabled: {
-    background: '#F0F2FA',
-    boxShadow: 'none',
-    border: '2px solid #E0E5F0',
-    cursor: 'default',
-  },
-  gameIconWrap: {
-    width: '64px',
-    height: '64px',
-    background: '#EEF1FE',
-    borderRadius: '16px',
+    borderRadius: '18px',
+    padding: '16px 16px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: '14px',
+    boxShadow: '0 2px 10px rgba(31,62,224,0.08)',
+    border: '2px solid transparent',
+  },
+  rowDone: {
+    background: '#F0FFF4',
+    border: '2px solid #A5D6A7',
+  },
+  periodCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    minWidth: '40px',
+  },
+  periodNum:  { fontSize: '22px', fontWeight: '900', color: '#1F3EE0', lineHeight: 1 },
+  periodUnit: { fontSize: '14px', fontWeight: '700', color: '#6876A0' },
+  divider: {
+    width: '2px',
+    height: '48px',
+    background: '#E0E5F0',
+    borderRadius: '2px',
     flexShrink: 0,
-  },
-  gameIconWrapDisabled: {
-    background: '#E4E8F5',
-  },
-  gameEmoji: {
-    fontSize: '36px',
   },
   gameInfo: {
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
   },
-  gameTitle: {
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#12153D',
+  gameCategory: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
   },
-  gameTitleDisabled: {
-    color: '#A0A8C0',
-  },
-  comingSoon: {
-    fontSize: '16px',
-    color: '#A0A8C0',
-    marginTop: '4px',
-    fontWeight: '600',
-  },
-  arrow: {
-    fontSize: '32px',
-    color: '#1F3EE0',
-    fontWeight: '700',
+  gameIcon:          { fontSize: '18px' },
+  gameCategoryLabel: { fontSize: '15px', fontWeight: '700', color: '#6876A0' },
+  gameTitle:         { fontSize: '20px', fontWeight: '800', color: '#12153D' },
+  playBtn: {
+    padding: '12px 18px',
+    background: '#1F3EE0',
+    color: '#FFFFFF',
+    fontSize: '17px',
+    fontWeight: '800',
+    borderRadius: '12px',
+    border: 'none',
+    cursor: 'pointer',
     flexShrink: 0,
+    whiteSpace: 'nowrap',
+    boxShadow: '0 4px 12px rgba(31,62,224,0.3)',
   },
-  lock: {
-    fontSize: '24px',
+  doneTag: {
+    fontSize: '17px',
+    fontWeight: '800',
+    color: '#43A047',
     flexShrink: 0,
+    whiteSpace: 'nowrap',
   },
-  banner: {
+  reportBtn: {
     width: '100%',
-    maxWidth: '520px',
-    padding: '0 20px',
-    marginTop: '8px',
+    padding: '22px',
+    background: '#43A047',
+    color: '#FFFFFF',
+    fontSize: '20px',
+    fontWeight: '900',
+    borderRadius: '18px',
+    border: 'none',
+    boxShadow: '0 6px 24px rgba(67,160,71,0.35)',
+    cursor: 'pointer',
+    marginTop: '4px',
   },
-  bannerIcon: {
-    fontSize: '24px',
-    flexShrink: 0,
-  },
-  bannerText: {
+  notice: {
     fontSize: '18px',
-    color: '#7A4800',
+    color: '#A0A8C0',
+    textAlign: 'center',
     fontWeight: '600',
+  },
+  resetBtn: {
+    width: '100%',
+    padding: '16px',
+    background: 'transparent',
+    color: '#A0A8C0',
+    fontSize: '17px',
+    fontWeight: '700',
+    borderRadius: '14px',
+    border: '2px solid #D0D5E8',
+    cursor: 'pointer',
+    marginTop: '4px',
   },
 };

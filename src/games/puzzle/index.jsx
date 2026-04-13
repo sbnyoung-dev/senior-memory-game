@@ -1,22 +1,33 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import GuideScreen from './components/GuideScreen';
 import GameScreen from './components/GameScreen';
 import ResultScreen from './components/ResultScreen';
 import { DIFFICULTY_CONFIG } from './hooks/usePuzzleGame';
+import { STORAGE_KEY } from '../../pages/AdmissionPage';
+
+const VALID    = ['easy', 'normal', 'hard'];
+const CATEGORY = 'spatial';
 
 export default function PuzzleGame() {
-  const [screen,      setScreen]      = useState('guide');
-  const [difficulty,  setDifficulty]  = useState('easy');
-  const [round,       setRound]       = useState(1);
-  const [timeLeft,    setTimeLeft]    = useState(90);
-  const [result,      setResult]      = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate  = useNavigate();
+  const autoDiff  = VALID.includes(searchParams.get('difficulty')) ? searchParams.get('difficulty') : null;
 
-  // refs — closures 안에서 최신값 접근
+  const initialDiff = autoDiff || 'easy';
+  const initialTime = DIFFICULTY_CONFIG[initialDiff].timeLimit;
+
+  const [screen,     setScreen]     = useState('guide');
+  const [difficulty, setDifficulty] = useState(initialDiff);
+  const [round,      setRound]      = useState(1);
+  const [timeLeft,   setTimeLeft]   = useState(initialTime);
+  const [result,     setResult]     = useState(null);
+
   const timerRef    = useRef(null);
   const scoresRef   = useRef([]);
   const roundRef    = useRef(1);
-  const diffRef     = useRef('easy');
-  const timeLeftRef = useRef(90);
+  const diffRef     = useRef(initialDiff);
+  const timeLeftRef = useRef(initialTime);
 
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
 
@@ -45,7 +56,6 @@ export default function PuzzleGame() {
     setScreen('result');
   }, []);
 
-  // 타이머 — screen이 'game'이 될 때 한 번 시작, 라운드 변경 시 유지
   useEffect(() => {
     if (screen !== 'game') return;
     timerRef.current = setInterval(() => {
@@ -59,7 +69,7 @@ export default function PuzzleGame() {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [screen, finishGame]); // screen이 'game'으로 바뀔 때만 실행
+  }, [screen, finishGame]);
 
   const handleStart = (diff) => {
     const cfg = DIFFICULTY_CONFIG[diff];
@@ -93,9 +103,18 @@ export default function PuzzleGame() {
     setScreen('guide');
   }, []);
 
+  function handleHome() {
+    if (result) {
+      const user = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const todayScores = { ...(user.todayScores || {}), [CATEGORY]: result.total };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...user, todayScores }));
+    }
+    navigate('/');
+  }
+
   const cfg = DIFFICULTY_CONFIG[difficulty];
 
-  if (screen === 'guide')  return <GuideScreen onStart={handleStart} />;
+  if (screen === 'guide')  return <GuideScreen onStart={handleStart} lockedDifficulty={autoDiff} />;
   if (screen === 'game')   return (
     <GameScreen
       key={difficulty + '-' + round}
@@ -107,5 +126,5 @@ export default function PuzzleGame() {
       onQuit={handleRestart}
     />
   );
-  if (screen === 'result') return <ResultScreen result={result} onRestart={handleRestart} />;
+  if (screen === 'result') return <ResultScreen result={result} onRestart={handleRestart} onHome={handleHome} />;
 }

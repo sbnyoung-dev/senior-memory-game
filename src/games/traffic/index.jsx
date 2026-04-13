@@ -6,9 +6,9 @@ import ResultScreen from './components/ResultScreen';
 import { STORAGE_KEY } from '../../pages/AdmissionPage';
 
 const VALID    = ['easy', 'normal', 'hard'];
-const CATEGORY = 'language';
+const CATEGORY = 'executive';
 
-export default function ChosungGame() {
+export default function TrafficGame() {
   const [searchParams] = useSearchParams();
   const navigate  = useNavigate();
   const autoDiff  = VALID.includes(searchParams.get('difficulty')) ? searchParams.get('difficulty') : null;

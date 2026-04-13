@@ -176,8 +176,8 @@ function PuzzleAnimDemo() {
 }
 
 // ─── 안내 화면 ────────────────────────────────────────────────────────────────
-export default function GuideScreen({ onStart }) {
-  const [selected, setSelected] = useState('easy');
+export default function GuideScreen({ onStart, lockedDifficulty }) {
+  const [selected, setSelected] = useState(lockedDifficulty || 'easy');
   const navigate = useNavigate();
 
   const steps = [
@@ -212,7 +212,7 @@ export default function GuideScreen({ onStart }) {
           <PuzzleAnimDemo />
         </div>
 
-        {/* 난이도 선택 */}
+        {!lockedDifficulty && (
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>난이도 선택</h2>
           <div style={styles.difficultyGroup}>
@@ -233,6 +233,7 @@ export default function GuideScreen({ onStart }) {
             ))}
           </div>
         </div>
+        )}
 
         <button style={styles.startBtn} onClick={() => onStart(selected)}>
           게임 시작

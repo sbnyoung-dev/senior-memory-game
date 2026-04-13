@@ -1,42 +1,43 @@
 import { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import GuideScreen from './components/GuideScreen';
 import GameScreen from './components/GameScreen';
 import ResultScreen from './components/ResultScreen';
+import { STORAGE_KEY } from '../../pages/AdmissionPage';
+
+const VALID    = ['easy', 'normal', 'hard'];
+const CATEGORY = 'attention';
 
 export default function StroopGame() {
-  const [screen, setScreen] = useState('guide'); // 'guide' | 'game' | 'result'
-  const [difficulty, setDifficulty] = useState('easy');
-  const [result, setResult] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate  = useNavigate();
+  const autoDiff  = VALID.includes(searchParams.get('difficulty')) ? searchParams.get('difficulty') : null;
 
-  const handleStart = (diff) => {
-    setDifficulty(diff);
-    setScreen('game');
-  };
+  const [screen,     setScreen]     = useState('guide');
+  const [difficulty, setDifficulty] = useState(autoDiff || 'easy');
+  const [result,     setResult]     = useState(null);
 
-  const handleGameEnd = (gameResult) => {
-    setResult(gameResult);
-    setScreen('result');
-  };
+  const handleStart   = (diff) => { setDifficulty(diff); setScreen('game'); };
+  const handleGameEnd = (r)    => { setResult(r); setScreen('result'); };
+  const handleRestart = ()     => { setResult(null); setScreen('guide'); };
 
-  const handleRestart = () => {
-    setResult(null);
-    setScreen('guide');
-  };
-
-  if (screen === 'guide') {
-    return <GuideScreen onStart={handleStart} />;
+  function handleHome() {
+    if (result) {
+      const user = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const todayScores = { ...(user.todayScores || {}), [CATEGORY]: result.total };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...user, todayScores }));
+    }
+    navigate('/');
   }
-  if (screen === 'game') {
-    return (
-      <GameScreen
-        key={difficulty + Date.now()}
-        difficulty={difficulty}
-        onEnd={handleGameEnd}
-        onQuit={handleRestart}
-      />
-    );
-  }
-  if (screen === 'result') {
-    return <ResultScreen result={result} onRestart={handleRestart} />;
-  }
+
+  if (screen === 'guide')  return <GuideScreen onStart={handleStart} lockedDifficulty={autoDiff} />;
+  if (screen === 'game')   return (
+    <GameScreen
+      key={difficulty + Date.now()}
+      difficulty={difficulty}
+      onEnd={handleGameEnd}
+      onQuit={handleRestart}
+    />
+  );
+  if (screen === 'result') return <ResultScreen result={result} onRestart={handleRestart} onHome={handleHome} />;
 }

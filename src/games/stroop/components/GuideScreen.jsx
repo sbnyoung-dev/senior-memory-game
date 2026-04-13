@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DIFFICULTY_CONFIG } from '../hooks/useStroopGame';
 
-export default function GuideScreen({ onStart }) {
-  const [selected, setSelected] = useState('easy');
+export default function GuideScreen({ onStart, lockedDifficulty }) {
+  const [selected, setSelected] = useState(lockedDifficulty || 'easy');
   const navigate = useNavigate();
 
   return (
@@ -47,7 +47,7 @@ export default function GuideScreen({ onStart }) {
           </div>
         </div>
 
-        {/* 난이도 선택 */}
+        {!lockedDifficulty && (
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>난이도 선택</h2>
           <div style={styles.difficultyGroup}>
@@ -76,6 +76,7 @@ export default function GuideScreen({ onStart }) {
             ))}
           </div>
         </div>
+        )}
 
         {/* 시작 버튼 */}
         <button style={styles.startBtn} onClick={() => onStart(selected)}>

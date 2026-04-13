@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DIFFICULTY_CONFIG } from '../hooks/useChosungGame';
+import { DIFFICULTY_CONFIG } from '../hooks/useTrafficGame';
+
+const DIFF_DETAILS = {
+  easy:   '제한시간 60초 · 규칙 전환 1회',
+  normal: '제한시간 60초 · 규칙 전환 2회',
+  hard:   '제한시간 90초 · 규칙 전환 4회',
+};
 
 export default function GuideScreen({ onStart, lockedDifficulty }) {
   const [selected, setSelected] = useState(lockedDifficulty || 'easy');
@@ -13,9 +19,9 @@ export default function GuideScreen({ onStart, lockedDifficulty }) {
         <button style={styles.backBtn} onClick={() => navigate('/')}>
           ← 홈으로
         </button>
-        <div style={styles.headerIcon}>✏️</div>
-        <h1 style={styles.title}>초성 게임</h1>
-        <p style={styles.subtitle}>언어능력을 키우는 두뇌 훈련</p>
+        <div style={styles.headerIcon}>🚦</div>
+        <h1 style={styles.title}>신호등 게임</h1>
+        <p style={styles.subtitle}>전두엽 집행능력을 키우는 두뇌 훈련</p>
       </div>
 
       <div style={styles.content}>
@@ -25,23 +31,35 @@ export default function GuideScreen({ onStart, lockedDifficulty }) {
           <div style={styles.steps}>
             <div style={styles.step}>
               <span style={styles.stepNumber}>1</span>
-              <span style={styles.stepText}>초성을 보고 알맞은 단어를 찾으세요!</span>
+              <span style={styles.stepText}>신호등 색깔을 보고 버튼을 눌러요!</span>
             </div>
             <div style={styles.step}>
               <span style={styles.stepNumber}>2</span>
-              <span style={styles.stepText}>힌트를 참고하면 더 쉽게 풀 수 있어요</span>
+              <span style={styles.stepText}>🟢 초록불 → 출발 버튼을 눌러요</span>
+            </div>
+            <div style={styles.step}>
+              <span style={styles.stepNumber}>3</span>
+              <span style={styles.stepText}>🔴 빨간불 → 멈춤 버튼을 눌러요</span>
+            </div>
+            <div style={styles.step}>
+              <span style={styles.stepNumber}>4</span>
+              <span style={styles.stepText}>중간에 규칙이 바뀔 수 있어요!</span>
             </div>
           </div>
 
-          {/* 예시 */}
+          {/* 예시 박스 */}
           <div style={styles.exampleWrap}>
             <p style={styles.exampleLabel}>예시</p>
-            <div style={styles.exampleCard}>
-              <div style={styles.exampleChosung}>ㅅ ㄹ</div>
-              <div style={styles.exampleArrow}>→</div>
-              <div style={styles.exampleAnswerWrap}>
-                <div style={styles.exampleAnswerChip}>사랑</div>
-                <p style={styles.exampleHint}>감정에 관련된 단어예요</p>
+            <div style={styles.exampleRow}>
+              <div style={styles.exampleItem}>
+                <span style={styles.exampleSignal}>🟢</span>
+                <span style={styles.exampleArrow}>→</span>
+                <div style={{ ...styles.exampleBtn, background: '#1F3EE0' }}>🚗 출발</div>
+              </div>
+              <div style={styles.exampleItem}>
+                <span style={styles.exampleSignal}>🔴</span>
+                <span style={styles.exampleArrow}>→</span>
+                <div style={{ ...styles.exampleBtn, background: '#E53935' }}>🛑 멈춤</div>
               </div>
             </div>
           </div>
@@ -67,7 +85,7 @@ export default function GuideScreen({ onStart, lockedDifficulty }) {
                   }}>
                     {cfg.label}
                   </span>
-                  <span style={styles.diffDetail}>{cfg.detail}</span>
+                  <span style={styles.diffDetail}>{DIFF_DETAILS[key]}</span>
                 </div>
                 {selected === key && <span style={styles.diffCheck}>✓</span>}
               </button>
@@ -102,6 +120,7 @@ const styles = {
     padding: '20px 24px 40px',
     borderRadius: '0 0 32px 32px',
     marginBottom: '24px',
+    position: 'relative',
   },
   backBtn: {
     alignSelf: 'flex-start',
@@ -187,46 +206,35 @@ const styles = {
     fontSize: '16px',
     fontWeight: '700',
     color: '#6876A0',
-    marginBottom: '12px',
+    marginBottom: '14px',
   },
-  exampleCard: {
+  exampleRow: {
+    display: 'flex',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  exampleItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
+    gap: '10px',
+    flex: 1,
+    minWidth: '140px',
   },
-  exampleChosung: {
+  exampleSignal: {
     fontSize: '32px',
-    fontWeight: '900',
-    color: '#1F3EE0',
-    background: '#FFFFFF',
-    borderRadius: '12px',
-    padding: '10px 18px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    letterSpacing: '4px',
   },
   exampleArrow: {
-    fontSize: '24px',
+    fontSize: '20px',
     color: '#6876A0',
     fontWeight: '700',
   },
-  exampleAnswerWrap: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  exampleAnswerChip: {
-    fontSize: '20px',
+  exampleBtn: {
+    fontSize: '18px',
     fontWeight: '800',
     color: '#FFFFFF',
-    background: '#43A047',
     borderRadius: '10px',
-    padding: '8px 16px',
+    padding: '8px 14px',
     textAlign: 'center',
-  },
-  exampleHint: {
-    fontSize: '16px',
-    color: '#6876A0',
-    fontWeight: '600',
   },
   difficultyGroup: {
     display: 'flex',
@@ -242,6 +250,7 @@ const styles = {
     background: '#F4F6FF',
     border: '2px solid #E0E5F0',
     textAlign: 'left',
+    cursor: 'pointer',
   },
   diffBtnSelected: {
     background: '#EEF1FE',
@@ -261,7 +270,7 @@ const styles = {
     color: '#1F3EE0',
   },
   diffDetail: {
-    fontSize: '18px',
+    fontSize: '17px',
     color: '#6876A0',
   },
   diffCheck: {
@@ -279,5 +288,6 @@ const styles = {
     borderRadius: '16px',
     boxShadow: '0 6px 20px rgba(31,62,224,0.35)',
     marginTop: '4px',
+    cursor: 'pointer',
   },
 };

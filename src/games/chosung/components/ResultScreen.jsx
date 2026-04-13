@@ -23,7 +23,7 @@ function ScoreBar({ label, score, max, color }) {
   );
 }
 
-export default function ResultScreen({ result, onRestart }) {
+export default function ResultScreen({ result, onRestart, onHome }) {
   const navigate = useNavigate();
   const { total, accuracy, speed, efficiency, correctCount, totalQuestions } = result;
   const { emoji, grade, message } = getGrade(total);
@@ -83,7 +83,7 @@ export default function ResultScreen({ result, onRestart }) {
         <button style={styles.restartBtn} onClick={onRestart}>
           다시 하기
         </button>
-        <button style={styles.homeBtn} onClick={() => navigate('/')}>
+        <button style={styles.homeBtn} onClick={onHome}>
           홈으로
         </button>
       </div>
