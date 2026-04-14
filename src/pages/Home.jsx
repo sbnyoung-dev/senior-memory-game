@@ -81,7 +81,9 @@ export default function Home() {
 
                 {/* 플레이 / 완료 버튼 */}
                 {done ? (
-                  <div style={styles.doneTag}>✅ 완료</div>
+                  <button style={styles.doneBtn} onClick={() => handlePlay(game)}>
+                    완료 ✅
+                  </button>
                 ) : (
                   <button style={styles.playBtn} onClick={() => handlePlay(game)}>
                     ▶ 플레이
@@ -256,10 +258,15 @@ const styles = {
     whiteSpace: 'nowrap',
     boxShadow: '0 4px 12px rgba(31,62,224,0.3)',
   },
-  doneTag: {
-    fontSize: '17px',
-    fontWeight: '800',
+  doneBtn: {
+    padding: '10px 14px',
+    background: '#F0FFF4',
     color: '#43A047',
+    fontSize: '16px',
+    fontWeight: '800',
+    borderRadius: '12px',
+    border: '2px solid #A5D6A7',
+    cursor: 'pointer',
     flexShrink: 0,
     whiteSpace: 'nowrap',
   },

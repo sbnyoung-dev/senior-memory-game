@@ -10,6 +10,8 @@ import ChosungGame from './games/chosung';
 import PuzzleGame from './games/puzzle';
 import TrafficGame from './games/traffic';
 import BunsikGame from './games/bunsik';
+import DailyReportPage from './pages/DailyReportPage';
+import ChildSafetyReportPage from './pages/ChildSafetyReportPage';
 
 // 루트 진입 시 로컬 스토리지 상태에 따라 분기
 function RootRedirect() {
@@ -32,8 +34,10 @@ export default function App() {
         <Route path="/chosung"        element={<ChosungGame />} />
         <Route path="/puzzle"         element={<PuzzleGame />} />
         <Route path="/traffic"        element={<TrafficGame />} />
-        <Route path="/bunsik"         element={<BunsikGame />} />
-        <Route path="*"               element={<Navigate to="/" replace />} />
+        <Route path="/bunsik"               element={<BunsikGame />} />
+        <Route path="/daily-report"         element={<DailyReportPage />} />
+        <Route path="/child-safety-report"  element={<ChildSafetyReportPage />} />
+        <Route path="*"                     element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -69,11 +69,7 @@ export default function ResultScreen({ result, onRestart, onHome }) {
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>세부 점수</h2>
           <ScoreBar label="정확도" score={accuracy} max={60} color="#1F3EE0" />
-          <ScoreBar label="빠르기" score={speed}    max={25} color="#FF8C00" />
-          <div style={styles.baseScoreRow}>
-            <span style={styles.baseScoreLabel}>기본 점수</span>
-            <span style={styles.baseScoreValue}>15 / 15점</span>
-          </div>
+          <ScoreBar label="속도"   score={speed}    max={25} color="#FF8C00" />
         </div>
 
         {/* 응원 메시지 */}
@@ -226,14 +222,6 @@ const styles = {
     borderRadius: '8px',
     transition: 'width 0.8s ease',
   },
-  baseScoreRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '4px',
-  },
-  baseScoreLabel: { fontSize: '20px', color: '#12153D', fontWeight: '700' },
-  baseScoreValue: { fontSize: '20px', fontWeight: '700', color: '#00A86B' },
   encouragement: {
     display: 'flex',
     alignItems: 'center',

@@ -54,39 +54,44 @@ const EXECUTIVE_ITEMS = [
   },
 ];
 
+// 총액 계산 문제 (거스름돈 제거)
 const CALC_ITEMS = [
-  { items: [{ name: '김밥', price: 3000 }, { name: '떡볶이', price: 4000 }], paid: 10000 },
-  { items: [{ name: '라면', price: 4500 }, { name: '순대', price: 3500 }], paid: 10000 },
-  { items: [{ name: '어묵', price: 1000 }, { name: '음료수', price: 1500 }], paid: 5000 },
+  { items: [{ name: '김밥', price: 3000 }, { name: '떡볶이', price: 4000 }] },
+  { items: [{ name: '라면', price: 4500 }, { name: '순대', price: 3500 }] },
+  { items: [{ name: '어묵', price: 1000 }, { name: '음료수', price: 1500 }] },
 ];
 
 const Q_META = [
   { id: 'memory',    label: '기억력',        emoji: '🧠', timeSec: 10, hasShowing: true,
-    hint: '없는 숫자를 고르세요',        intro: '숫자를 기억하세요!' },
+    hint: '없는 숫자를 고르세요',       intro: '숫자를 기억하세요!' },
   { id: 'attention', label: '주의집중력',     emoji: '👁️', timeSec: 8,  hasShowing: false,
-    hint: '글자의 색깔이 무엇인가요?',   intro: '글자 색깔을 고르세요!' },
+    hint: '글자의 색깔이 무엇인가요?',  intro: '글자 색깔을 고르세요!' },
   { id: 'language',  label: '언어능력',       emoji: '💬', timeSec: 15, hasShowing: false,
-    hint: '어떤 단어일까요?',            intro: '초성을 보고 단어를 맞춰보세요!' },
+    hint: '어떤 단어일까요?',           intro: '초성을 보고 단어를 맞춰보세요!' },
   { id: 'spatial',   label: '시공간능력',     emoji: '🎲', timeSec: 12, hasShowing: true,
     hint: '색칠된 칸을 다시 눌러보세요', intro: '패턴을 기억하세요!' },
   { id: 'executive', label: '전두엽 집행능력', emoji: '🎯', timeSec: 10, hasShowing: false,
-    hint: '규칙에 맞는 것을 고르세요',  intro: '규칙을 잘 읽고 고르세요!' },
+    hint: '규칙에 맞는 것을 고르세요', intro: '규칙을 잘 읽고 고르세요!' },
   { id: 'calculation', label: '계산능력',     emoji: '🧮', timeSec: 20, hasShowing: false,
-    hint: '거스름돈이 얼마인가요?',      intro: '금액을 계산해보세요!' },
+    hint: '총액이 얼마인가요?',         intro: '금액을 계산해보세요!' },
 ];
 
 // ─── 시험 데이터 생성 ─────────────────────────────────────────────────────────
 
+// 정답을 먼저 고정하고 나머지 3개를 랜덤으로 채우는 방식
 function genCalcChoices(correct) {
   const set = new Set([correct]);
-  const offs = shuffle([500, 1000, 1500, 2000, 2500]);
+  const offs = shuffle([500, 1000, 1500, 2000, 2500, 3000]);
   for (const o of offs) {
     if (set.size >= 4) break;
     const cands = [correct + o, correct - o].filter(v => v > 0 && !set.has(v));
-    if (cands.length) set.add(cands[0]);
+    if (cands.length) set.add(shuffle(cands)[0]);
   }
   let extra = 500;
-  while (set.size < 4) { if (!set.has(correct + extra)) set.add(correct + extra); extra += 500; }
+  while (set.size < 4) {
+    if (!set.has(correct + extra)) set.add(correct + extra);
+    extra += 500;
+  }
   return shuffle([...set]);
 }
 
@@ -112,10 +117,9 @@ function generateExamData() {
   const q5Raw     = EXECUTIVE_ITEMS[Math.floor(Math.random() * EXECUTIVE_ITEMS.length)];
   const q5Choices = shuffle([...q5Raw.choices]);
 
-  // Q6: 계산능력 - 거스름돈
-  const q6Raw    = CALC_ITEMS[Math.floor(Math.random() * CALC_ITEMS.length)];
-  const q6Total  = q6Raw.items.reduce((s, it) => s + it.price, 0);
-  const q6Change = q6Raw.paid - q6Total;
+  // Q6: 계산능력 - 총액 계산 (정답 먼저 고정 후 나머지 랜덤)
+  const q6Raw   = CALC_ITEMS[Math.floor(Math.random() * CALC_ITEMS.length)];
+  const q6Total = q6Raw.items.reduce((s, it) => s + it.price, 0);
 
   return {
     q1: { shown, notShown, choices: q1Choices },
@@ -123,7 +127,7 @@ function generateExamData() {
     q3: { ...q3Raw, choices: q3Choices },
     q4: { target: q4Target },
     q5: { ...q5Raw, choices: q5Choices },
-    q6: { ...q6Raw, total: q6Total, change: q6Change, choices: genCalcChoices(q6Change) },
+    q6: { items: q6Raw.items, total: q6Total, choices: genCalcChoices(q6Total) },
   };
 }
 
@@ -139,8 +143,20 @@ function checkAnswer(qIdx, choice, data) {
       return choice.every(v => t.includes(v)) && t.every(v => choice.includes(v));
     }
     case 4: return choice === data.q5.answer;
-    case 5: return choice === data.q6.change;
+    case 5: return choice === data.q6.total;
     default: return false;
+  }
+}
+
+function getCorrectAnswer(qIdx, data) {
+  switch (qIdx) {
+    case 0: return data.q1.notShown;
+    case 1: return data.q2.inkName;
+    case 2: return data.q3.answer;
+    case 3: return data.q4.target;
+    case 4: return data.q5.answer;
+    case 5: return data.q6.total;
+    default: return null;
   }
 }
 
@@ -158,21 +174,27 @@ export default function EntranceExamPage() {
   const navigate = useNavigate();
   const [examData]    = useState(() => generateExamData());
 
-  const [currentQ,  setCurrentQ]  = useState(0);
-  const [subPhase,  setSubPhase]  = useState('intro'); // 'intro' | 'showing' | 'answering'
-  const [timeLeft,  setTimeLeft]  = useState(0);
+  const [currentQ,   setCurrentQ]   = useState(0);
+  const [subPhase,   setSubPhase]   = useState('intro'); // 'intro' | 'showing' | 'answering'
+  const [timeLeft,   setTimeLeft]   = useState(0);
   const [q4Selected, setQ4Selected] = useState([]);
+  const [feedback,   setFeedback]   = useState(null); // { isCorrect, selectedChoice, correctAnswer }
 
-  const currentQRef     = useRef(0);
-  const subPhaseRef     = useRef('intro');
-  const answersRef      = useRef([]);
-  const q4SelectedRef   = useRef([]);
+  const currentQRef      = useRef(0);
+  const subPhaseRef      = useRef('intro');
+  const answersRef       = useRef([]);
+  const q4SelectedRef    = useRef([]);
   const questionStartRef = useRef(0);
-  const timerRef        = useRef(null);
-  const examDataRef     = useRef(examData);
+  const timerRef         = useRef(null);
+  const feedbackTimerRef = useRef(null);
+  const feedbackRef      = useRef(false); // 피드백 중 중복 입력 방지
+  const examDataRef      = useRef(examData);
 
   function clearTimer() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }
+  function clearFeedbackTimer() {
+    if (feedbackTimerRef.current) { clearTimeout(feedbackTimerRef.current); feedbackTimerRef.current = null; }
   }
 
   function startAnsweringPhase() {
@@ -197,6 +219,7 @@ export default function EntranceExamPage() {
 
   function handleTimeoutInternal() {
     if (subPhaseRef.current !== 'answering') return;
+    if (feedbackRef.current) return;
     const qIdx = currentQRef.current;
     const responseTime = Date.now() - questionStartRef.current;
     const isCorrect = qIdx === 3
@@ -216,7 +239,9 @@ export default function EntranceExamPage() {
       currentQRef.current = nextQ;
       subPhaseRef.current = 'intro';
       q4SelectedRef.current = [];
+      feedbackRef.current = false;
       setQ4Selected([]);
+      setFeedback(null);
       setCurrentQ(nextQ);
       setSubPhase('intro');
     } else {
@@ -233,16 +258,28 @@ export default function EntranceExamPage() {
     }
   }
 
+  function showFeedbackThenSubmit(isCorrect, responseTime, selectedChoice, correctAnswer) {
+    feedbackRef.current = true;
+    setFeedback({ isCorrect, selectedChoice, correctAnswer });
+    feedbackTimerRef.current = setTimeout(() => {
+      setFeedback(null);
+      submitAnswer(isCorrect, responseTime);
+    }, 1500);
+  }
+
   function handleAnswer(choice) {
     if (subPhaseRef.current !== 'answering') return;
+    if (feedbackRef.current) return;
     clearTimer();
     const responseTime = Date.now() - questionStartRef.current;
-    const isCorrect = checkAnswer(currentQRef.current, choice, examDataRef.current);
-    submitAnswer(isCorrect, responseTime);
+    const isCorrect    = checkAnswer(currentQRef.current, choice, examDataRef.current);
+    const correctAnswer = getCorrectAnswer(currentQRef.current, examDataRef.current);
+    showFeedbackThenSubmit(isCorrect, responseTime, choice, correctAnswer);
   }
 
   function handleQ4Tap(idx) {
     if (subPhaseRef.current !== 'answering') return;
+    if (feedbackRef.current) return;
     const cur = q4SelectedRef.current;
     let next;
     if (cur.includes(idx)) {
@@ -257,9 +294,10 @@ export default function EntranceExamPage() {
 
     if (next.length === 3) {
       clearTimer();
-      const responseTime = Date.now() - questionStartRef.current;
-      const isCorrect = checkAnswer(3, next, examDataRef.current);
-      submitAnswer(isCorrect, responseTime);
+      const responseTime  = Date.now() - questionStartRef.current;
+      const isCorrect     = checkAnswer(3, next, examDataRef.current);
+      const correctAnswer = examDataRef.current.q4.target;
+      showFeedbackThenSubmit(isCorrect, responseTime, next, correctAnswer);
     }
   }
 
@@ -282,16 +320,50 @@ export default function EntranceExamPage() {
     return () => clearTimeout(t);
   }, [subPhase, currentQ]); // eslint-disable-line
 
-  useEffect(() => () => clearTimer(), []);
+  useEffect(() => () => { clearTimer(); clearFeedbackTimer(); }, []);
 
   // ─── 렌더링 ────────────────────────────────────────────────────────────────
 
-  const meta       = Q_META[currentQ];
-  const isIntro    = subPhase === 'intro';
-  const isShowing  = subPhase === 'showing';
+  const meta        = Q_META[currentQ];
+  const isIntro     = subPhase === 'intro';
+  const isShowing   = subPhase === 'showing';
   const isAnswering = subPhase === 'answering';
 
   const { q1, q2, q3, q4, q5, q6 } = examData;
+
+  // 선택지 버튼 스타일 (피드백 반영)
+  function getChoiceBtnStyle(value) {
+    if (!feedback) return styles.choiceBtn;
+    if (value === feedback.selectedChoice) {
+      return feedback.isCorrect
+        ? { ...styles.choiceBtn, background: '#E8F5E9', border: '2px solid #43A047', color: '#2E7D32' }
+        : { ...styles.choiceBtn, background: '#FFEBEE', border: '2px solid #E53935', color: '#B71C1C' };
+    }
+    if (value === feedback.correctAnswer && !feedback.isCorrect) {
+      return { ...styles.choiceBtn, background: '#E8F5E9', border: '2px solid #43A047', color: '#2E7D32' };
+    }
+    return { ...styles.choiceBtn, opacity: 0.45 };
+  }
+
+  // Q4 격자 셀 스타일 (피드백 반영)
+  function getQ4CellStyle(idx) {
+    if (isShowing) {
+      return q4.target.includes(idx)
+        ? { ...styles.spatialCell, ...styles.spatialCellTarget }
+        : styles.spatialCell;
+    }
+    if (feedback) {
+      const inTarget   = feedback.correctAnswer.includes(idx);
+      const inSelected = feedback.selectedChoice.includes(idx);
+      if (inTarget && inSelected)  return { ...styles.spatialCell, background: '#43A047', border: '2px solid #43A047', boxShadow: '0 4px 16px rgba(67,160,71,0.4)' };
+      if (inSelected && !inTarget) return { ...styles.spatialCell, background: '#E53935', border: '2px solid #E53935', boxShadow: '0 4px 16px rgba(229,57,53,0.4)' };
+      if (inTarget && !inSelected) return { ...styles.spatialCell, background: '#FB8C00', border: '2px solid #FB8C00', boxShadow: '0 4px 16px rgba(251,140,0,0.4)' };
+      return styles.spatialCell;
+    }
+    return q4Selected.includes(idx)
+      ? { ...styles.spatialCell, ...styles.spatialCellSelected }
+      : styles.spatialCell;
+  }
 
   function renderQuestionContent() {
     switch (currentQ) {
@@ -305,7 +377,12 @@ export default function EntranceExamPage() {
         ) : (
           <div style={styles.choiceGrid}>
             {q1.choices.map((n, i) => (
-              <button key={i} style={styles.choiceBtn} onClick={() => handleAnswer(n)}>
+              <button
+                key={i}
+                style={getChoiceBtnStyle(n)}
+                onClick={() => handleAnswer(n)}
+                disabled={!!feedback}
+              >
                 {n}
               </button>
             ))}
@@ -320,7 +397,12 @@ export default function EntranceExamPage() {
             </div>
             <div style={styles.choiceGrid}>
               {q2.choices.map((name, i) => (
-                <button key={i} style={styles.choiceBtn} onClick={() => handleAnswer(name)}>
+                <button
+                  key={i}
+                  style={getChoiceBtnStyle(name)}
+                  onClick={() => handleAnswer(name)}
+                  disabled={!!feedback}
+                >
                   {name}
                 </button>
               ))}
@@ -337,7 +419,12 @@ export default function EntranceExamPage() {
             </div>
             <div style={styles.choiceGrid}>
               {q3.choices.map((word, i) => (
-                <button key={i} style={styles.choiceBtn} onClick={() => handleAnswer(word)}>
+                <button
+                  key={i}
+                  style={getChoiceBtnStyle(word)}
+                  onClick={() => handleAnswer(word)}
+                  disabled={!!feedback}
+                >
                   {word}
                 </button>
               ))}
@@ -354,10 +441,8 @@ export default function EntranceExamPage() {
                   key={idx}
                   onClick={() => !isShowing && handleQ4Tap(idx)}
                   style={{
-                    ...styles.spatialCell,
-                    ...(isShowing && q4.target.includes(idx) ? styles.spatialCellTarget : {}),
-                    ...(!isShowing && q4Selected.includes(idx) ? styles.spatialCellSelected : {}),
-                    cursor: isShowing ? 'default' : 'pointer',
+                    ...getQ4CellStyle(idx),
+                    cursor: (isShowing || !!feedback) ? 'default' : 'pointer',
                   }}
                 />
               ))}
@@ -376,7 +461,12 @@ export default function EntranceExamPage() {
             </div>
             <div style={styles.choiceGrid}>
               {q5.choices.map((item, i) => (
-                <button key={i} style={styles.choiceBtn} onClick={() => handleAnswer(item.name)}>
+                <button
+                  key={i}
+                  style={getChoiceBtnStyle(item.name)}
+                  onClick={() => handleAnswer(item.name)}
+                  disabled={!!feedback}
+                >
                   <span style={styles.choiceBtnEmoji}>{item.emoji}</span>
                   <span style={styles.choiceBtnLabel}>{item.name}</span>
                 </button>
@@ -385,7 +475,7 @@ export default function EntranceExamPage() {
           </>
         );
 
-      case 5: // 계산능력
+      case 5: // 계산능력 (총액 계산)
         return (
           <>
             <div style={styles.calcCard}>
@@ -396,14 +486,19 @@ export default function EntranceExamPage() {
                 </div>
               ))}
               <div style={styles.calcDivider} />
-              <div style={styles.calcPaidRow}>
-                <span style={styles.calcPaidLabel}>💵 낸 돈</span>
-                <span style={styles.calcPaidValue}>{q6.paid.toLocaleString('ko-KR')}원</span>
+              <div style={styles.calcTotalRow}>
+                <span style={styles.calcTotalLabel}>합계는?</span>
+                <span style={styles.calcTotalValue}>?</span>
               </div>
             </div>
             <div style={styles.choiceGrid}>
               {q6.choices.map((amt, i) => (
-                <button key={i} style={styles.choiceBtn} onClick={() => handleAnswer(amt)}>
+                <button
+                  key={i}
+                  style={getChoiceBtnStyle(amt)}
+                  onClick={() => handleAnswer(amt)}
+                  disabled={!!feedback}
+                >
                   {amt.toLocaleString('ko-KR')}원
                 </button>
               ))}
@@ -424,7 +519,7 @@ export default function EntranceExamPage() {
           {Q_META.map((_, i) => (
             <div key={i} style={{
               ...styles.progressStep,
-              ...(i < currentQ  ? styles.progressStepDone    : {}),
+              ...(i < currentQ   ? styles.progressStepDone    : {}),
               ...(i === currentQ ? styles.progressStepCurrent : {}),
             }}>
               <span style={styles.progressStepNum}>{i + 1}</span>
@@ -454,7 +549,11 @@ export default function EntranceExamPage() {
             <div style={styles.introSub}>잠시 후 시작됩니다...</div>
           </div>
         ) : (
-          <div style={styles.questionWrap}>
+          <div style={{ ...styles.questionWrap, position: 'relative' }}>
+            {/* 정답 배지 */}
+            {feedback?.isCorrect && (
+              <div style={styles.correctBadge}>정답!</div>
+            )}
             {isShowing && (
               <div style={styles.showingLabel}>기억하세요!</div>
             )}
@@ -492,10 +591,7 @@ const styles = {
     color: '#FFFFFF',
     marginBottom: '16px',
   },
-  progressRow: {
-    display: 'flex',
-    gap: '8px',
-  },
+  progressRow: { display: 'flex', gap: '8px' },
   progressStep: {
     width: '38px',
     height: '38px',
@@ -505,12 +601,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  progressStepDone: {
-    background: 'rgba(255,255,255,0.5)',
-  },
-  progressStepCurrent: {
-    background: '#FFFFFF',
-  },
+  progressStepDone:    { background: 'rgba(255,255,255,0.5)' },
+  progressStepCurrent: { background: '#FFFFFF' },
   progressStepNum: {
     fontSize: '16px',
     fontWeight: '800',
@@ -534,11 +626,7 @@ const styles = {
     border: '2px solid #FF4D4D',
     background: '#FFF5F5',
   },
-  hintText: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#12153D',
-  },
+  hintText: { fontSize: '18px', fontWeight: '700', color: '#12153D' },
   timerBadge: {
     display: 'flex',
     alignItems: 'baseline',
@@ -547,19 +635,9 @@ const styles = {
     padding: '6px 14px',
     borderRadius: '10px',
   },
-  timerBadgeUrgent: {
-    background: '#FFE5E5',
-  },
-  timerNum: {
-    fontSize: '24px',
-    fontWeight: '900',
-    color: '#1F3EE0',
-  },
-  timerUnit: {
-    fontSize: '16px',
-    fontWeight: '700',
-    color: '#6876A0',
-  },
+  timerBadgeUrgent: { background: '#FFE5E5' },
+  timerNum:  { fontSize: '24px', fontWeight: '900', color: '#1F3EE0' },
+  timerUnit: { fontSize: '16px', fontWeight: '700', color: '#6876A0' },
   content: {
     width: '100%',
     maxWidth: '520px',
@@ -588,17 +666,8 @@ const styles = {
     padding: '6px 20px',
     borderRadius: '20px',
   },
-  introText: {
-    fontSize: '28px',
-    fontWeight: '800',
-    color: '#12153D',
-    textAlign: 'center',
-  },
-  introSub: {
-    fontSize: '18px',
-    color: '#A0A8C0',
-    fontWeight: '600',
-  },
+  introText: { fontSize: '28px', fontWeight: '800', color: '#12153D', textAlign: 'center' },
+  introSub:  { fontSize: '18px', color: '#A0A8C0', fontWeight: '600' },
 
   // 문제 공통
   questionWrap: {
@@ -616,6 +685,27 @@ const styles = {
     borderRadius: '12px',
     alignSelf: 'center',
   },
+
+  // 정답 배지
+  correctBadge: {
+    position: 'absolute',
+    top: '-10px',
+    right: '-10px',
+    width: '68px',
+    height: '68px',
+    borderRadius: '50%',
+    background: '#43A047',
+    color: '#FFFFFF',
+    fontSize: '17px',
+    fontWeight: '900',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    zIndex: 10,
+  },
+
+  // 선택지
   choiceGrid: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -638,6 +728,7 @@ const styles = {
     justifyContent: 'center',
     gap: '6px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'background 0.15s, border-color 0.15s',
   },
   choiceBtnEmoji: { fontSize: '36px' },
   choiceBtnLabel: { fontSize: '20px', fontWeight: '800', color: '#12153D' },
@@ -671,11 +762,7 @@ const styles = {
     textAlign: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
   },
-  stroopWord: {
-    fontSize: '72px',
-    fontWeight: '900',
-    letterSpacing: '4px',
-  },
+  stroopWord: { fontSize: '72px', fontWeight: '900', letterSpacing: '4px' },
 
   // Q3: 초성
   chosungBox: {
@@ -689,12 +776,7 @@ const styles = {
     gap: '12px',
     boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
   },
-  chosungText: {
-    fontSize: '56px',
-    fontWeight: '900',
-    color: '#1F3EE0',
-    letterSpacing: '16px',
-  },
+  chosungText: { fontSize: '56px', fontWeight: '900', color: '#1F3EE0', letterSpacing: '16px' },
   chosungHint: { fontSize: '52px' },
 
   // Q4: 시공간
@@ -722,12 +804,7 @@ const styles = {
     border: '2px solid #43A047',
     boxShadow: '0 4px 16px rgba(67,160,71,0.4)',
   },
-  spatialCount: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#6876A0',
-    textAlign: 'center',
-  },
+  spatialCount: { fontSize: '20px', fontWeight: '700', color: '#6876A0', textAlign: 'center' },
 
   // Q5: 집행능력
   ruleBox: {
@@ -738,13 +815,9 @@ const styles = {
     padding: '20px',
     textAlign: 'center',
   },
-  ruleText: {
-    fontSize: '24px',
-    fontWeight: '900',
-    color: '#5A3000',
-  },
+  ruleText: { fontSize: '24px', fontWeight: '900', color: '#5A3000' },
 
-  // Q6: 계산
+  // Q6: 계산 (총액)
   calcCard: {
     width: '100%',
     background: '#FFFFFF',
@@ -762,13 +835,13 @@ const styles = {
   calcName:  { fontSize: '22px', fontWeight: '600', color: '#12153D' },
   calcPrice: { fontSize: '22px', fontWeight: '700', color: '#12153D' },
   calcDivider: { height: '2px', background: '#12153D', margin: '8px 0 4px' },
-  calcPaidRow: {
+  calcTotalRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '8px 0 0',
     marginTop: '4px',
   },
-  calcPaidLabel: { fontSize: '20px', fontWeight: '700', color: '#1F3EE0' },
-  calcPaidValue: { fontSize: '24px', fontWeight: '900', color: '#1F3EE0' },
+  calcTotalLabel: { fontSize: '22px', fontWeight: '800', color: '#1F3EE0' },
+  calcTotalValue: { fontSize: '28px', fontWeight: '900', color: '#1F3EE0' },
 };
