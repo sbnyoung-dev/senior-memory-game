@@ -76,6 +76,327 @@ const Q_META = [
     hint: '총액이 얼마인가요?',         intro: '금액을 계산해보세요!' },
 ];
 
+// ─── 안내 화면 컴포넌트 ────────────────────────────────────────────────────────
+
+const GUIDE_TEXTS = [
+  '숫자를 잘 기억했다가 없는 숫자를 고르세요',
+  '글자 색깔이 무엇인지 고르세요',
+  '초성을 보고 맞는 단어를 고르세요',
+  '색칠된 칸을 기억했다가 같은 위치를 눌러보세요',
+  '규칙을 읽고 맞는 것을 고르세요',
+  '메뉴 가격을 더해서 총액을 고르세요',
+];
+
+// Q0: 기억력 - 숫자 4개 나타났다 사라지는 애니
+function MemoryAnim({ frame }) {
+  const nums = [3, 7, 2, 9];
+  const visible = frame === 0;
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '220px' }}>
+      {nums.map((n, i) => (
+        <div key={i} style={{
+          height: '72px',
+          borderRadius: '16px',
+          background: visible ? '#1F3EE0' : '#E0E5F0',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background 0.4s, color 0.4s',
+          fontSize: '36px', fontWeight: '900',
+          color: visible ? '#FFFFFF' : '#E0E5F0',
+        }}>
+          {visible ? n : '?'}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Q1: 주의집중력 - 색깔 단어 등장
+const ANIM_STROOP = [
+  { word: '빨강', color: '#2962FF' },
+  { word: '파랑', color: '#43A047' },
+  { word: '초록', color: '#E53935' },
+];
+function AttentionAnim({ frame }) {
+  const item = ANIM_STROOP[frame % ANIM_STROOP.length];
+  return (
+    <div style={{
+      width: '220px', height: '100px',
+      background: '#FFFFFF', borderRadius: '16px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+    }}>
+      <span style={{ fontSize: '56px', fontWeight: '900', color: item.color, transition: 'color 0.3s' }}>
+        {item.word}
+      </span>
+    </div>
+  );
+}
+
+// Q2: 언어능력 - 초성 등장 후 보기 나타남
+function LanguageAnim({ frame }) {
+  const showChoices = frame === 1;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '220px' }}>
+      <div style={{
+        background: '#FFFFFF', borderRadius: '16px', padding: '14px 24px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+      }}>
+        <span style={{ fontSize: '32px', fontWeight: '900', color: '#1F3EE0', letterSpacing: '10px' }}>ㅅ · ㄱ</span>
+        <span style={{ fontSize: '30px' }}>🍎</span>
+      </div>
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', width: '100%',
+        opacity: showChoices ? 1 : 0, transition: 'opacity 0.4s',
+      }}>
+        {['사과', '수박', '딸기', '포도'].map(w => (
+          <div key={w} style={{
+            background: '#EEF1FE', borderRadius: '10px',
+            padding: '8px 0', textAlign: 'center',
+            fontSize: '16px', fontWeight: '700', color: '#12153D',
+          }}>{w}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Q4: 전두엽 집행능력 - 규칙 + 이모지 선택 애니
+const EXEC_ANIM_CHOICES = [
+  { emoji: '🍎', name: '사과', correct: true },
+  { emoji: '🚗', name: '자동차', correct: false },
+  { emoji: '✏️', name: '연필', correct: false },
+  { emoji: '🎵', name: '음악', correct: false },
+];
+function ExecutiveAnim({ frame }) {
+  // frame 0: 규칙+선택지 표시, frame 1: 정답 강조
+  const highlight = frame === 1;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '220px' }}>
+      <div style={{
+        background: '#FFF8E1', border: '2px solid #FFB300',
+        borderRadius: '12px', padding: '10px 16px', width: '100%', textAlign: 'center',
+      }}>
+        <span style={{ fontSize: '18px', fontWeight: '900', color: '#5A3000' }}>과일만 고르세요</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', width: '100%' }}>
+        {EXEC_ANIM_CHOICES.map((item, i) => (
+          <div key={i} style={{
+            background: highlight && item.correct ? '#E8F5E9' : '#FFFFFF',
+            border: highlight && item.correct ? '2px solid #43A047' : '2px solid #E0E5F0',
+            borderRadius: '10px', padding: '8px 4px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+            transition: 'background 0.3s, border-color 0.3s',
+          }}>
+            <span style={{ fontSize: '26px' }}>{item.emoji}</span>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: '#12153D' }}>{item.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Q5: 계산능력 - 메뉴 가격 등장
+function CalcAnim({ frame }) {
+  return (
+    <div style={{
+      background: '#FFFFFF', borderRadius: '16px', padding: '16px 20px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)', width: '220px',
+      border: '2px solid #FFB300',
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', padding: '6px 0',
+        opacity: frame >= 0 ? 1 : 0, transition: 'opacity 0.4s',
+      }}>
+        <span style={{ fontSize: '16px', fontWeight: '600' }}>김밥</span>
+        <span style={{ fontSize: '16px', fontWeight: '700' }}>3,000원</span>
+      </div>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', padding: '6px 0',
+        opacity: frame >= 1 ? 1 : 0, transition: 'opacity 0.4s',
+        borderBottom: '1px dotted #E0E5F0',
+      }}>
+        <span style={{ fontSize: '16px', fontWeight: '600' }}>떡볶이</span>
+        <span style={{ fontSize: '16px', fontWeight: '700' }}>4,000원</span>
+      </div>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', padding: '8px 0 2px',
+        opacity: frame >= 2 ? 1 : 0, transition: 'opacity 0.4s',
+      }}>
+        <span style={{ fontSize: '16px', fontWeight: '800', color: '#1F3EE0' }}>합계는?</span>
+        <span style={{ fontSize: '18px', fontWeight: '900', color: '#1F3EE0' }}>?</span>
+      </div>
+    </div>
+  );
+}
+
+// Q3: 시공간능력 - 3x3 격자 칸이 순서대로 색칠 → 초기화 → 안내 텍스트
+const SPATIAL_ANIM_CELLS = [0, 4, 7]; // 색칠될 칸 인덱스
+const SPATIAL_TIMINGS = [400, 600, 600, 1300, 1100]; // 각 프레임 지속 시간(ms)
+// 0: 빈 격자 | 1: 1칸 색칠 | 2: 2칸 색칠 | 3: 3칸 색칠 | 4: 초기화 + 안내 텍스트
+
+function SpatialAnim() {
+  const [frame, setFrame] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    function advance(f) {
+      const delay = SPATIAL_TIMINGS[f];
+      setTimeout(() => {
+        if (cancelled) return;
+        const next = (f + 1) % SPATIAL_TIMINGS.length;
+        setFrame(next);
+        advance(next);
+      }, delay);
+    }
+    advance(frame);
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line
+
+  const showPrompt = frame === 4;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+        {Array.from({ length: 9 }, (_, idx) => {
+          const cellOrder = SPATIAL_ANIM_CELLS.indexOf(idx);
+          const isColored = !showPrompt && cellOrder !== -1 && cellOrder < frame;
+          return (
+            <div key={idx} style={{
+              width: '62px', height: '62px',
+              borderRadius: '12px',
+              background: isColored ? '#1F3EE0' : '#FFFFFF',
+              border: isColored ? '2px solid #1F3EE0' : '2px solid #E0E5F0',
+              boxShadow: isColored ? '0 4px 14px rgba(31,62,224,0.35)' : 'none',
+              transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s',
+            }} />
+          );
+        })}
+      </div>
+      <div style={{
+        fontSize: '16px', fontWeight: '700', color: '#1F3EE0',
+        background: '#EEF1FE', padding: '8px 16px', borderRadius: '10px',
+        opacity: showPrompt ? 1 : 0,
+        transition: 'opacity 0.3s',
+      }}>
+        이제 같은 칸을 눌러보세요
+      </div>
+    </div>
+  );
+}
+
+// 문제 인덱스별 애니메이션 설정
+const ANIM_CONFIG = {
+  0: { frames: 2, interval: 1100 }, // 기억력
+  1: { frames: 3, interval: 900 },  // 주의집중력
+  2: { frames: 2, interval: 1200 }, // 언어능력
+  4: { frames: 2, interval: 1000 }, // 전두엽
+  5: { frames: 3, interval: 950 },  // 계산능력
+};
+
+function ExamGuideScreen({ qIndex, onReady }) {
+  const [frame, setFrame] = useState(0);
+
+  useEffect(() => {
+    const cfg = ANIM_CONFIG[qIndex];
+    if (!cfg) return;
+    let f = 0;
+    const id = setInterval(() => {
+      f = (f + 1) % cfg.frames;
+      setFrame(f);
+    }, cfg.interval);
+    return () => clearInterval(id);
+  }, [qIndex]);
+
+  const meta = Q_META[qIndex];
+  const guideText = GUIDE_TEXTS[qIndex];
+
+  function renderAnim() {
+    switch (qIndex) {
+      case 0: return <MemoryAnim frame={frame} />;
+      case 1: return <AttentionAnim frame={frame} />;
+      case 2: return <LanguageAnim frame={frame} />;
+      case 3: return <SpatialAnim />;
+      case 4: return <ExecutiveAnim frame={frame} />;
+      case 5: return <CalcAnim frame={frame} />;
+      default: return null;
+    }
+  }
+
+  return (
+    <div style={gs.box}>
+      <div style={gs.topRow}>
+        <span style={gs.emoji}>{meta.emoji}</span>
+        <span style={gs.label}>{meta.label}</span>
+      </div>
+
+      <div style={gs.animArea}>
+        {renderAnim()}
+      </div>
+
+      <p style={gs.guideText}>{guideText}</p>
+
+      <button style={gs.readyBtn} onClick={onReady}>
+        준비됐어요, 시작할게요!
+      </button>
+    </div>
+  );
+}
+
+const gs = {
+  box: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '20px',
+    padding: '24px 0 8px',
+  },
+  topRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  emoji: { fontSize: '36px' },
+  label: {
+    fontSize: '20px',
+    fontWeight: '700',
+    color: '#6876A0',
+    background: '#EEF1FE',
+    padding: '6px 20px',
+    borderRadius: '20px',
+  },
+  animArea: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '160px',
+  },
+  guideText: {
+    fontSize: '22px',
+    fontWeight: '800',
+    color: '#12153D',
+    textAlign: 'center',
+    lineHeight: '1.4',
+    padding: '0 8px',
+  },
+  readyBtn: {
+    marginTop: '8px',
+    padding: '22px 32px',
+    background: '#1F3EE0',
+    color: '#FFFFFF',
+    fontSize: '22px',
+    fontWeight: '900',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    width: '100%',
+    boxShadow: '0 6px 20px rgba(31,62,224,0.35)',
+    letterSpacing: '0.5px',
+  },
+};
+
 // ─── 시험 데이터 생성 ─────────────────────────────────────────────────────────
 
 // 정답을 먼저 고정하고 나머지 3개를 랜덤으로 채우는 방식
@@ -301,20 +622,21 @@ export default function EntranceExamPage() {
     }
   }
 
-  // 페이즈 전환 (intro → showing/answering, showing → answering)
+  // 준비 버튼 클릭 핸들러 (안내 화면 → 문제 시작)
+  function handleGuideReady() {
+    const meta = Q_META[currentQRef.current];
+    if (meta.hasShowing) {
+      subPhaseRef.current = 'showing';
+      setSubPhase('showing');
+    } else {
+      startAnsweringPhase();
+    }
+  }
+
+  // 페이즈 전환: 모든 문제 버튼 클릭 대기, showing → answering만 자동 전환
   useEffect(() => {
     let t;
-    if (subPhase === 'intro') {
-      t = setTimeout(() => {
-        const meta = Q_META[currentQRef.current];
-        if (meta.hasShowing) {
-          subPhaseRef.current = 'showing';
-          setSubPhase('showing');
-        } else {
-          startAnsweringPhase();
-        }
-      }, 2000);
-    } else if (subPhase === 'showing') {
+    if (subPhase === 'showing') {
       t = setTimeout(() => startAnsweringPhase(), 2000);
     }
     return () => clearTimeout(t);
@@ -514,7 +836,7 @@ export default function EntranceExamPage() {
     <div style={styles.container}>
       {/* 헤더 */}
       <div style={styles.header}>
-        <p style={styles.headerTitle}>신입생 선발 고사</p>
+        <p style={styles.headerTitle}>신입생 입학고사</p>
         <div style={styles.progressRow}>
           {Q_META.map((_, i) => (
             <div key={i} style={{
@@ -542,12 +864,11 @@ export default function EntranceExamPage() {
       {/* 컨텐츠 영역 */}
       <div style={styles.content}>
         {isIntro ? (
-          <div style={styles.introBox}>
-            <div style={styles.introEmoji}>{meta.emoji}</div>
-            <div style={styles.introCategory}>{meta.label}</div>
-            <div style={styles.introText}>{meta.intro}</div>
-            <div style={styles.introSub}>잠시 후 시작됩니다...</div>
-          </div>
+          <ExamGuideScreen
+            key={currentQ}
+            qIndex={currentQ}
+            onReady={handleGuideReady}
+          />
         ) : (
           <div style={{ ...styles.questionWrap, position: 'relative' }}>
             {/* 정답 배지 */}
@@ -647,7 +968,7 @@ const styles = {
     flexDirection: 'column',
   },
 
-  // 인트로
+  // 인트로 (Q3 전용)
   introBox: {
     flex: 1,
     display: 'flex',
